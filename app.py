@@ -23,10 +23,20 @@ st.set_page_config(
 @st.cache_resource
 def get_openai_client():
     """Initialize and cache the OpenAI client"""
-    api_key = os.getenv("OPENAI_API_KEY")
+    # Try to get API key from Streamlit secrets first, then fall back to environment variables
+    api_key = None
+    
+    # First, try Streamlit secrets (for cloud deployment)
+    try:
+        api_key = st.secrets["OPENAI_API_KEY"]
+    except (KeyError, FileNotFoundError):
+        # Fall back to environment variable (for local development)
+        api_key = os.getenv("OPENAI_API_KEY")
+    
     if not api_key:
-        st.error("⚠️ OPENAI_API_KEY not found in environment variables. Please check your .env file or Streamlit secrets.")
+        st.error("⚠️ OPENAI_API_KEY not found. Please add it to Streamlit secrets (cloud) or .env file (local).")
         st.stop()
+    
     return OpenAI(api_key=api_key)
 
 client = get_openai_client()
@@ -109,7 +119,16 @@ with st.sidebar:
     st.divider()
     
     st.markdown("### Configuration")
-    api_key_status = "✅ Configured" if os.getenv("OPENAI_API_KEY") else "❌ Not Found"
+    # Check for API key in both Streamlit secrets and environment
+    api_key_configured = False
+    try:
+        if st.secrets.get("OPENAI_API_KEY"):
+            api_key_configured = True
+    except (KeyError, FileNotFoundError):
+        if os.getenv("OPENAI_API_KEY"):
+            api_key_configured = True
+    
+    api_key_status = "✅ Configured" if api_key_configured else "❌ Not Found"
     st.markdown(f"**API Key:** {api_key_status}")
     
     if st.session_state.messages:
