@@ -15,8 +15,8 @@ print("\nTest 2: Checking API key...")
 api_key = os.getenv("OPENAI_API_KEY")
 if api_key:
     print(f"✓ API key found (length: {len(api_key)} characters)")
-    print(f"  Starts with: {api_key[:10]}...")
-    print(f"  Ends with: ...{api_key[-10:]}")
+    # Mask the API key for security - only show it's present
+    print(f"  Format: {'sk-proj-' if api_key.startswith('sk-proj-') else 'sk-'}***")
 else:
     print("✗ API key not found!")
     exit(1)
