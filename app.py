@@ -14,9 +14,10 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="OpenAI Chatbot",
+    page_title="AI Chat Assistant",
     page_icon="🤖",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Initialize OpenAI client
@@ -45,26 +46,76 @@ client = get_openai_client()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# App title and description
-st.title("🤖 OpenAI Chatbot")
-st.markdown("Ask me anything! I'm powered by OpenAI's GPT model.")
+# Custom CSS for better styling
+st.markdown("""
+    <style>
+    .main {
+        background: linear-gradient(135deg, #0E1117 0%, #1E2228 100%);
+    }
+    .stChatMessage {
+        background-color: rgba(30, 34, 40, 0.5);
+        border-radius: 10px;
+        padding: 10px;
+        margin: 5px 0;
+    }
+    h1 {
+        background: linear-gradient(90deg, #10A37F 0%, #1a7f64 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .subtitle {
+        color: #10A37F;
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    .stButton>button {
+        background: linear-gradient(90deg, #10A37F 0%, #1a7f64 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(90deg, #1a7f64 0%, #10A37F 100%);
+        box-shadow: 0 4px 12px rgba(16, 163, 127, 0.4);
+        transform: translateY(-2px);
+    }
+    .chat-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# App header with improved styling
+col1, col2, col3 = st.columns([1, 3, 1])
+with col2:
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    st.title("🤖 AI Chat Assistant")
+    st.markdown('<p class="subtitle">💬 Powered by OpenAI GPT • Ask me anything!</p>', unsafe_allow_html=True)
+    st.markdown("---")
 
 # Display chat history
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar="🧑‍💻" if message["role"] == "user" else "🤖"):
         st.markdown(message["content"])
 
 # Chat input
-if prompt := st.chat_input("Type your message here..."):
+if prompt := st.chat_input("💭 Type your message here...", key="chat_input"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     # Display user message
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="🧑‍💻"):
         st.markdown(prompt)
     
     # Generate and display assistant response
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🤖"):
         message_placeholder = st.empty()
         
         try:
@@ -98,27 +149,37 @@ if prompt := st.chat_input("Type your message here..."):
 
 # Sidebar with options
 with st.sidebar:
-    st.header("Options")
+    st.markdown("## ⚙️ Settings")
     
-    if st.button("Clear Chat History"):
+    # Clear chat button with better styling
+    if st.button("🗑️ Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
     
-    st.divider()
+    st.markdown("---")
     
-    st.markdown("### About")
-    st.markdown("""
-    This chatbot uses OpenAI's GPT-3.5-turbo model to provide intelligent responses.
-    
-    **Features:**
-    - Real-time streaming responses
-    - Conversation history
-    - Secure API key management
+    # About section with enhanced styling
+    st.markdown("### 📖 About")
+    st.info("""
+    **AI Chat Assistant** uses OpenAI's GPT-3.5-turbo model to provide intelligent, 
+    context-aware responses to your questions.
     """)
     
-    st.divider()
+    # Features with icons
+    st.markdown("### ✨ Features")
+    st.markdown("""
+    - ⚡ Real-time streaming responses
+    - 💾 Persistent conversation history
+    - 🔒 Secure API key management
+    - 🎨 Modern, responsive UI
+    - 🌙 Dark mode optimized
+    """)
     
-    st.markdown("### Configuration")
+    st.markdown("---")
+    
+    # Configuration status
+    st.markdown("### 🔧 Configuration")
+    
     # Check for API key in both Streamlit secrets and environment
     api_key_configured = False
     try:
@@ -128,8 +189,21 @@ with st.sidebar:
         if os.getenv("OPENAI_API_KEY"):
             api_key_configured = True
     
-    api_key_status = "✅ Configured" if api_key_configured else "❌ Not Found"
-    st.markdown(f"**API Key:** {api_key_status}")
+    if api_key_configured:
+        st.success("✅ API Key Configured")
+    else:
+        st.error("❌ API Key Not Found")
     
     if st.session_state.messages:
-        st.markdown(f"**Messages:** {len(st.session_state.messages)}")
+        st.metric("💬 Messages", len(st.session_state.messages))
+    
+    st.markdown("---")
+    
+    # Footer
+    st.markdown("""
+    <div style='text-align: center; color: #10A37F; font-size: 0.9rem;'>
+    Made with ❤️ using Streamlit & OpenAI
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
